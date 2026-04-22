@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>程曦 | GitHub 风格个人网站</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --border: #e5e5e7;
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --link: #0066cc;
+      --green: #34c759;
+      --green-soft: #e8f7ec;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      --hero-text: #1d1d1f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans SC",
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.55;
+      overflow-x: hidden;
+      background-image: none;
+      animation: pageFadeIn 0.7s ease-out both;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.8), rgba(0, 102, 204, 0.06) 40%, transparent 72%);
+      transform: translate3d(calc(var(--mx, 50vw) - 180px), calc(var(--my, 50vh) - 180px), 0);
+      transition: opacity 0.25s ease;
+      z-index: 0;
+      filter: blur(18px);
+      opacity: var(--cursor-glow-opacity, 1);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(245, 245, 247, 0.78);
+      backdrop-filter: saturate(180%) blur(18px);
+      color: #111113;
+      padding: 12px 20px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      letter-spacing: -0.01em;
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+
+    .topbar.scrolled {
+      background: rgba(245, 245, 247, 0.92);
+      border-bottom-color: rgba(0, 0, 0, 0.12);
+    }
+
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 3px;
+      z-index: 20;
+      background: linear-gradient(90deg, #58a6ff, #2da44e);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.55);
+      transition: width 0.08s linear;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 26px auto 12px;
+      padding: 68px 24px 58px;
+      text-align: center;
+      border-radius: 34px;
+      overflow: hidden;
+      min-height: 440px;
+      display: grid;
+      align-items: center;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(980px 420px at 8% 0%, rgba(0, 102, 204, 0.1), transparent 60%),
+        radial-gradient(760px 320px at 100% 30%, rgba(52, 199, 89, 0.1), transparent 60%),
+        linear-gradient(180deg, #ffffff, #f5f5f7);
+    }
+
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.16;
+      filter: saturate(1) contrast(1);
+      z-index: -2;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.78) 100%
+      );
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(40px, 6.2vw, 78px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--hero-text);
+      text-wrap: balance;
+      transform: translateY(22px);
+      opacity: 0;
+      animation: heroIn 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .hero p {
+      margin-top: 16px;
+      font-size: clamp(18px, 2.2vw, 26px);
+      color: var(--muted);
+      opacity: 0;
+      transform: translateY(18px);
+      animation: heroIn 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.18s forwards;
+    }
+
+    .hero-kicker {
+      margin: 0 0 14px;
+      font-size: 12px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #1d4ed8;
+      opacity: 0.92;
+      font-weight: 600;
+    }
+
+    .hero-title-main {
+      display: block;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .hero-title-main .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: charIn 0.55s ease forwards;
+      animation-delay: calc(var(--i) * 42ms + 260ms);
+    }
+
+    .hero-title-sub {
+      display: block;
+      font-size: 0.42em;
+      margin-top: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 38px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .card {
+      --parallax-y: 0px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      transform: translate3d(0, var(--parallax-y), 0);
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+    }
+
+    .parallax {
+      will-change: transform;
+    }
+
+    .card:hover {
+      transform: translate3d(0, var(--parallax-y), 0) translateY(-5px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.09);
+    }
+
+    .profile {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 132px;
+      height: 132px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1f6feb, #2da44e);
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(31, 111, 235, 0.28);
+      animation: float 4.5s ease-in-out infinite;
+      position: relative;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar::after {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid rgba(88, 166, 255, 0.55);
+      animation: ringPulse 2.8s ease-out infinite;
+      pointer-events: none;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    .name {
+      font-size: 32px;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .role {
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: #116329;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #9be9a8;
+    }
+
+    .meta {
+      margin-top: 16px;
+      text-align: left;
+      font-size: 14px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .meta div + div {
+      margin-top: 8px;
+    }
+
+    .main {
+      display: grid;
+      gap: 16px;
+      perspective: 1200px;
+    }
+
+    .section {
+      padding: 26px 26px;
+    }
+
+    .section h2 {
+      font-size: 30px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      width: fit-content;
+    }
+
+    .section h2::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -8px;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.02));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.45s ease;
+    }
+
+    .section:hover h2::after {
+      transform: scaleX(1);
+    }
+
+    .readme {
+      font-size: 17px;
+    }
+
+    .readme p + p {
+      margin-top: 10px;
+    }
+
+    .repos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .repo {
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+      transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .repo-link {
+      cursor: pointer;
+    }
+
+    .repo-link:focus-visible {
+      outline: 2px solid rgba(0, 102, 204, 0.45);
+      outline-offset: 2px;
+    }
+
+    .repo:hover {
+      transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-4px) scale(1.01);
+      border-color: #d2d2d7;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .repo.repo-launching {
+      animation: repoLaunch 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+      pointer-events: none;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(6px);
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .pdf-modal {
+      width: min(980px, 96vw);
+      height: min(88vh, 860px);
+      border-radius: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 54px rgba(0, 0, 0, 0.22);
+      transform: translateY(10px) scale(0.985);
+      transition: transform 0.25s ease;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .modal-backdrop.show .pdf-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .pdf-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pdf-modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .pdf-modal-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #1d1d1f;
+      font-size: 13px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      line-height: 1.2;
+    }
+
+    .modal-btn:hover {
+      background: #f5f5f7;
+    }
+
+    .modal-btn.close {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .pdf-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+
+    .repo::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -140%;
+      width: 65%;
+      height: 100%;
+      transform: skewX(-18deg);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.46), transparent);
+      transition: left 0.7s ease;
+      pointer-events: none;
+    }
+
+    .repo:hover::before {
+      left: 170%;
+    }
+
+    .repo h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: #1d1d1f;
+      line-height: 1.3;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .repo p {
+      font-size: 14px;
+      color: var(--muted);
+      min-height: 44px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .tags {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      font-size: 12px;
+      color: #424245;
+      background: #f5f5f7;
+      border: 1px solid #e5e5e7;
+      padding: 4px 10px;
+      border-radius: 999px;
+      transition: transform 0.22s ease, background 0.22s ease;
+    }
+
+    .tag:hover {
+      transform: translateY(-2px);
+      background: #ebebed;
+    }
+
+    .contribution {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .cell {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 3px;
+      border: 1px solid rgba(27, 31, 36, 0.06);
+      background: #ebedf0;
+      transform: scale(1);
+      transition: transform 0.18s ease, filter 0.18s ease;
+    }
+
+    .cell:hover {
+      transform: scale(1.18);
+      filter: saturate(1.1) brightness(1.03);
+    }
+
+    .lv1 { background: #9be9a8; }
+    .lv2 { background: #40c463; }
+    .lv3 { background: #30a14e; }
+    .lv4 { background: #216e39; }
+
+    footer {
+      text-align: center;
+      color: #86868b;
+      font-size: 13px;
+      padding: 26px 16px 32px;
+      opacity: 1;
+      background: #ffffff;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      margin-top: 16px;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translate3d(0, var(--parallax-y), 0) translateY(28px) scale(0.99);
+      transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .reveal.show {
+      opacity: 1;
+      transform: translate3d(0, var(--parallax-y), 0) translateY(0) scale(1);
+    }
+
+    .delay-1 { transition-delay: 0.08s; }
+    .delay-2 { transition-delay: 0.16s; }
+    .delay-3 { transition-delay: 0.24s; }
+    .delay-4 { transition-delay: 0.32s; }
+
+    .highlight {
+      max-width: 1100px;
+      margin: 8px auto 26px;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .highlight-card {
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .highlight-card h3 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.01em;
+    }
+
+    .highlight-card p,
+    .highlight-card li {
+      margin: 0;
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .highlight-card ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .lifestyle-item {
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: linear-gradient(160deg, rgba(9, 105, 218, 0.08), rgba(45, 164, 78, 0.08));
+      transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .lifestyle-item:hover {
+      transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-4px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+      border-color: rgba(9, 105, 218, 0.4);
+    }
+
+    .lifestyle-item h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .lifestyle-item p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    @keyframes heroIn {
+      from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes charIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes ringPulse {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.9;
+      }
+      70% {
+        transform: scale(1.08);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1.08);
+        opacity: 0;
+      }
+    }
+
+    @keyframes pageFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes repoLaunch {
+      0% {
+        transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale(1);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+      }
+      55% {
+        transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-2px) scale(1.02);
+        box-shadow: 0 16px 28px rgba(0, 102, 204, 0.15);
+      }
+      100% {
+        transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale(0.99);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --card: #1c1c1e;
+        --border: #2c2c2e;
+        --text: #f5f5f7;
+        --muted: #a1a1a6;
+        --link: #2997ff;
+        --green-soft: rgba(52, 199, 89, 0.2);
+        --shadow: 0 18px 34px rgba(0, 0, 0, 0.35);
+        --hero-text: #f5f5f7;
+      }
+
+      body {
+        background-image: none;
+      }
+
+      .topbar {
+        background: rgba(0, 0, 0, 0.7);
+        border-bottom-color: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+      }
+
+      .topbar.scrolled {
+        background: rgba(0, 0, 0, 0.86);
+      }
+
+      .modal-btn {
+        background: #1c1c1e;
+        color: #f5f5f7;
+        border-color: #3a3a3c;
+      }
+
+      .modal-btn:hover {
+        background: #2c2c2e;
+      }
+
+      footer {
+        color: #8e8e93;
+        background: #111113;
+        border-top-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .hero::after {
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.2) 0%,
+          rgba(0, 0, 0, 0.62) 100%
+        );
+      }
+
+      .hero-media {
+        background:
+          radial-gradient(920px 400px at 10% 0%, rgba(41, 151, 255, 0.18), transparent 62%),
+          radial-gradient(720px 320px at 100% 30%, rgba(52, 199, 89, 0.14), transparent 62%),
+          linear-gradient(180deg, #111113, #000000);
+      }
+
+      .hero-kicker {
+        color: #58a6ff;
+      }
+
+      .repo::before {
+        background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.14), transparent);
+      }
+
+      .repo,
+      .card {
+        background: #1c1c1e;
+      }
+
+      .tag {
+        color: #d2d2d7;
+        background: #2c2c2e;
+        border-color: #3a3a3c;
+      }
+
+      .cell {
+        border-color: rgba(230, 237, 243, 0.08);
+        background: #21262d;
+      }
+
+      .lifestyle-item {
+        background: linear-gradient(160deg, rgba(88, 166, 255, 0.14), rgba(63, 185, 80, 0.12));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .avatar,
+      .card,
+      .repo,
+      .tag,
+      .cell,
+      .reveal,
+      .hero h1,
+      .hero p {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+      }
+
+      .avatar::after {
+        animation: none !important;
+      }
+
+      .hero-title-main .char {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .repos {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="topbar">Cheng Xi · Personal Website</div>
+  <header class="hero">
+    <div class="hero-media"></div>
+    <video class="hero-video" autoplay muted loop playsinline preload="metadata">
+      <source src="https://cdn.coverr.co/videos/coverr-hiker-in-the-mountains-1579/1080p.mp4" type="video/mp4">
+    </video>
+    <p class="hero-kicker">CHENG XI · PORTFOLIO</p>
+    <h1>
+      <span class="hero-title-main">机械工程与机器人实践</span>
+      <span class="hero-title-sub">武汉理工大学 · Mechanical Engineering</span>
+    </h1>
+    <p>在设计、制造与迭代中，把想法一步步变成真实作品。</p>
+  </header>
+
+  <div class="container">
+    <aside class="card profile reveal delay-1">
+      <div class="avatar">
+        <img src="./assets/avatar.png" alt="程曦头像">
+      </div>
+      <h1 class="name">程曦</h1>
+      <p class="role">武汉理工大学 · 机械工程专业</p>
+      <span class="badge">Student Developer</span>
+      <div class="meta">
+        <div>🎂 出生日期：2006.11.15</div>
+        <div>📍 中国 · 武汉</div>
+        <div>🎓 在读专业：机械工程</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card section readme reveal delay-1 parallax" data-speed="0.04">
+        <h2>About</h2>
+        <p>你好，我是程曦，一名武汉理工大学机械工程专业学生。我对机器人设计、机械结构优化和工程实践充满热情。</p>
+        <p>目前负责并参与多个机器人相关项目，持续学习并应用 SolidWorks 等工程软件，把创意转化为可落地的机械方案。</p>
+      </section>
+
+      <section class="card section reveal delay-2 parallax" data-speed="0.03">
+        <h2>Projects</h2>
+        <div class="repos">
+          <article class="repo tilt-card">
+            <h3>莫卡努机器猫项目</h3>
+            <p>负责机械结构设计与方案推进，围绕机器人运动与稳定性进行持续迭代。</p>
+            <div class="tags">
+              <span class="tag">Mechanical Design</span>
+              <span class="tag">Robot</span>
+            </div>
+          </article>
+          <article class="repo tilt-card repo-link" id="mrHandyCard" role="button" tabindex="0" aria-label="打开 Mr.handy 设计方案">
+            <h3>Mr.handy 机器人项目</h3>
+            <p>参与产品从构想到实现的工程流程，聚焦结构实现、装配和实用性优化。</p>
+            <div class="tags">
+              <span class="tag">Prototype</span>
+              <span class="tag">Engineering</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="card section reveal delay-3 parallax" data-speed="0.025">
+        <h2>Skills</h2>
+        <div class="tags">
+          <span class="tag">SolidWorks</span>
+          <span class="tag">机械结构设计</span>
+          <span class="tag">机器人项目实践</span>
+          <span class="tag">工程建模</span>
+        </div>
+      </section>
+
+      <section class="card section reveal delay-4 parallax" data-speed="0.02">
+        <h2>Beyond Engineering</h2>
+        <p style="color: var(--muted); margin-bottom: 10px;">
+          工程之外，我也在持续训练体能、拓展视野、保持创作表达。
+        </p>
+        <div class="lifestyle-grid">
+          <article class="lifestyle-item tilt-card">
+            <h3>🏃 Marathon Mindset</h3>
+            <p>中长跑和马拉松让我保持耐力、节奏感和长期主义。</p>
+          </article>
+          <article class="lifestyle-item tilt-card">
+            <h3>🌍 Travel Notes</h3>
+            <p>旅行让我观察不同城市与人群，也带来新的设计灵感。</p>
+          </article>
+          <article class="lifestyle-item tilt-card">
+            <h3>🎸 Guitar Time</h3>
+            <p>吉他帮助我在学习和项目之余保持专注与创造力。</p>
+          </article>
+          <article class="lifestyle-item tilt-card">
+            <h3>🧠 Personal Traits</h3>
+            <p>自驱、负责、乐于协作，愿意把想法落地成真实成果。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="mrHandyModal" aria-hidden="true">
+    <div class="pdf-modal" role="dialog" aria-modal="true" aria-labelledby="mrHandyModalTitle">
+      <div class="pdf-modal-header">
+        <h3 class="pdf-modal-title" id="mrHandyModalTitle">Mr.handy 设计方案</h3>
+        <div class="pdf-modal-actions">
+          <a class="modal-btn" id="mrHandyOpenNew" href="#" target="_blank" rel="noopener noreferrer">新窗口打开</a>
+          <button class="modal-btn close" id="mrHandyModalClose" type="button" aria-label="关闭弹窗">×</button>
+        </div>
+      </div>
+      <iframe class="pdf-frame" id="mrHandyPdfFrame" title="Mr.handy 设计方案预览"></iframe>
+    </div>
+  </div>
+
+  <section class="highlight">
+    <article class="highlight-card reveal">
+      <h3>最近项目进展</h3>
+      <ul>
+        <li>莫卡努机器猫：持续优化机械结构与稳定性。</li>
+        <li>Mr.handy：推进装配流程与实用性改进。</li>
+        <li>正在补充更多可展示的设计与测试记录。</li>
+      </ul>
+    </article>
+    <article class="highlight-card reveal">
+      <h3>联系方式</h3>
+      <p>如果你有机器人项目合作、比赛交流或实习机会，欢迎联系我。</p>
+      <ul>
+        <li>邮箱：2979179205@qq.com</li>
+        <li>城市：中国 · 武汉</li>
+        <li>身份：武汉理工大学机械工程学生</li>
+      </ul>
+    </article>
+    <article class="highlight-card reveal">
+      <h3>下一步计划</h3>
+      <ul>
+        <li>完善机械设计作品集（结构图、装配图、迭代记录）。</li>
+        <li>补充更多机器人项目的测试数据与复盘总结。</li>
+        <li>持续提升工程软件与实作能力。</li>
+      </ul>
+    </article>
+  </section>
+
+  <footer>
+    © 2026 程曦 · Designed with GitHub-inspired style
+  </footer>
+  <script>
+    const heroMainTitle = document.querySelector(".hero-title-main");
+    if (heroMainTitle && !heroMainTitle.dataset.split) {
+      const originalText = heroMainTitle.textContent.trim();
+      heroMainTitle.textContent = "";
+      originalText.split("").forEach((ch, idx) => {
+        const span = document.createElement("span");
+        span.className = "char";
+        span.style.setProperty("--i", idx);
+        span.textContent = ch === " " ? "\u00A0" : ch;
+        heroMainTitle.appendChild(span);
+      });
+      heroMainTitle.dataset.split = "true";
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("show");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll(".reveal").forEach((item) => observer.observe(item));
+
+    const topbar = document.querySelector(".topbar");
+    const progressBar = document.querySelector("#progressBar");
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > 12) {
+        topbar.classList.add("scrolled");
+      } else {
+        topbar.classList.remove("scrolled");
+      }
+
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    });
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const enableParallax = !prefersReducedMotion && window.innerWidth > 900;
+    const parallaxItems = enableParallax ? document.querySelectorAll(".parallax") : [];
+
+    let rafId = 0;
+    const applyParallax = () => {
+      const y = window.scrollY;
+      parallaxItems.forEach((item) => {
+        const speed = Number(item.dataset.speed || 0);
+        item.style.setProperty("--parallax-y", `${y * speed}px`);
+      });
+      rafId = 0;
+    };
+
+    const onScrollParallax = () => {
+      if (!enableParallax || rafId) return;
+      rafId = window.requestAnimationFrame(applyParallax);
+    };
+
+    if (enableParallax) {
+      window.addEventListener("scroll", onScrollParallax, { passive: true });
+      applyParallax();
+    }
+
+    if (!prefersReducedMotion) {
+      const isFinePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (isFinePointer) {
+        const bodyStyle = document.body.style;
+        let targetX = window.innerWidth / 2;
+        let targetY = window.innerHeight / 2;
+        let currentX = targetX;
+        let currentY = targetY;
+        let velocityX = 0;
+        let velocityY = 0;
+        let followRafId = 0;
+        let lastFrameTime = performance.now();
+        let prevPointerX = targetX;
+        let prevPointerY = targetY;
+
+        const animateCursorGlow = (timestamp) => {
+          const dt = Math.min((timestamp - lastFrameTime) / 1000, 0.033);
+          lastFrameTime = timestamp;
+
+          const stiffness = 240;
+          const damping = 34;
+          const accelX = (targetX - currentX) * stiffness - velocityX * damping;
+          const accelY = (targetY - currentY) * stiffness - velocityY * damping;
+
+          velocityX += accelX * dt;
+          velocityY += accelY * dt;
+          currentX += velocityX * dt;
+          currentY += velocityY * dt;
+
+          bodyStyle.setProperty("--mx", `${currentX.toFixed(2)}px`);
+          bodyStyle.setProperty("--my", `${currentY.toFixed(2)}px`);
+
+          const closeEnough = Math.abs(targetX - currentX) < 0.45 && Math.abs(targetY - currentY) < 0.45;
+          const stillMoving = Math.abs(velocityX) > 2.8 || Math.abs(velocityY) > 2.8;
+
+          if (!closeEnough || stillMoving) {
+            followRafId = window.requestAnimationFrame(animateCursorGlow);
+          } else {
+            followRafId = 0;
+            velocityX = 0;
+            velocityY = 0;
+            bodyStyle.setProperty("--cursor-glow-opacity", "0.68");
+          }
+        };
+
+        document.addEventListener("pointermove", (event) => {
+          const moveX = event.clientX - prevPointerX;
+          const moveY = event.clientY - prevPointerY;
+          if (Math.abs(moveX) < 0.3 && Math.abs(moveY) < 0.3) {
+            return;
+          }
+
+          const now = performance.now();
+          prevPointerX = event.clientX;
+          prevPointerY = event.clientY;
+
+          targetX = event.clientX;
+          targetY = event.clientY;
+          if (!followRafId) {
+            lastFrameTime = now;
+            followRafId = window.requestAnimationFrame(animateCursorGlow);
+          }
+        }, { passive: true });
+
+        document.addEventListener("pointerleave", () => {
+          bodyStyle.setProperty("--cursor-glow-opacity", "0");
+        });
+
+        document.addEventListener("pointerenter", () => {
+          bodyStyle.setProperty("--cursor-glow-opacity", "0.68");
+        });
+      } else {
+        document.body.style.setProperty("--cursor-glow-opacity", "0");
+      }
+    }
+
+    if (!prefersReducedMotion) {
+      const tiltCards = document.querySelectorAll(".tilt-card");
+      tiltCards.forEach((card) => {
+        card.addEventListener("mousemove", (event) => {
+          const rect = card.getBoundingClientRect();
+          const x = (event.clientX - rect.left) / rect.width;
+          const y = (event.clientY - rect.top) / rect.height;
+          const ry = (x - 0.5) * 8;
+          const rx = (0.5 - y) * 8;
+          card.style.setProperty("--tilt-x", `${rx.toFixed(2)}deg`);
+          card.style.setProperty("--tilt-y", `${ry.toFixed(2)}deg`);
+        });
+        card.addEventListener("mouseleave", () => {
+          card.style.setProperty("--tilt-x", "0deg");
+          card.style.setProperty("--tilt-y", "0deg");
+        });
+      });
+    }
+
+    const mrHandyCard = document.querySelector("#mrHandyCard");
+    if (mrHandyCard) {
+      let isJumping = false;
+      const mrHandyPdfUrl = "file:///C:/Users/29791/AppData/Roaming/Cursor/User/workspaceStorage/cc937403b425e1fd934d52d3fb36da9a/pdfs/df323d68-0e31-4fee-b612-9074728c0f78/底盘Handy家用机器人报告书.pdf";
+      const encodedPdfUrl = encodeURI(mrHandyPdfUrl);
+      const modal = document.querySelector("#mrHandyModal");
+      const modalCloseBtn = document.querySelector("#mrHandyModalClose");
+      const modalOpenNewLink = document.querySelector("#mrHandyOpenNew");
+      const pdfFrame = document.querySelector("#mrHandyPdfFrame");
+      let lastFocusedEl = null;
+
+      const openModal = () => {
+        if (!modal) return;
+        lastFocusedEl = document.activeElement;
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        if (pdfFrame) pdfFrame.src = encodedPdfUrl;
+        if (modalOpenNewLink) modalOpenNewLink.href = encodedPdfUrl;
+        if (modalCloseBtn) modalCloseBtn.focus();
+      };
+
+      const closeModal = () => {
+        if (!modal) return;
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        if (pdfFrame) pdfFrame.src = "";
+        if (lastFocusedEl && typeof lastFocusedEl.focus === "function") {
+          lastFocusedEl.focus();
+        }
+      };
+
+      const openMrHandyPdf = () => {
+        if (isJumping) return;
+        isJumping = true;
+        mrHandyCard.classList.add("repo-launching");
+        window.setTimeout(() => {
+          openModal();
+          mrHandyCard.classList.remove("repo-launching");
+          isJumping = false;
+        }, 320);
+      };
+
+      mrHandyCard.addEventListener("click", openMrHandyPdf);
+      mrHandyCard.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openMrHandyPdf();
+        }
+      });
+
+      if (modalCloseBtn) {
+        modalCloseBtn.addEventListener("click", closeModal);
+      }
+
+      if (modal) {
+        modal.addEventListener("click", (event) => {
+          if (event.target === modal) {
+            closeModal();
+          }
+        });
+      }
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal && modal.classList.contains("show")) {
+          closeModal();
+        }
+      });
+    }
+
+  </script>
+</body>
+</html>
