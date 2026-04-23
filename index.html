@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>程曦 | </title>
+  <title>程曦 | GitHub 风格个人网站</title>
   <style>
     :root {
       --bg: #f5f5f7;
@@ -34,21 +34,15 @@
       animation: pageFadeIn 0.7s ease-out both;
     }
 
-    body::before {
-      content: "";
+    .cursor-lightning {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 360px;
-      height: 360px;
-      border-radius: 50%;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
       pointer-events: none;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.8), rgba(0, 102, 204, 0.06) 40%, transparent 72%);
-      transform: translate3d(calc(var(--mx, 50vw) - 180px), calc(var(--my, 50vh) - 180px), 0);
+      opacity: 0;
       transition: opacity 0.25s ease;
-      z-index: 0;
-      filter: blur(18px);
-      opacity: var(--cursor-glow-opacity, 1);
     }
 
     .topbar {
@@ -817,6 +811,10 @@
         opacity: 1 !important;
         transform: none !important;
       }
+
+      .cursor-lightning {
+        display: none !important;
+      }
     }
 
     @media (max-width: 900px) {
@@ -831,6 +829,7 @@
   </style>
 </head>
 <body>
+  <canvas class="cursor-lightning" id="cursorLightning" aria-hidden="true"></canvas>
   <div class="progress-bar" id="progressBar"></div>
   <div class="topbar">Cheng Xi · Personal Website</div>
   <header class="hero">
@@ -1038,77 +1037,192 @@
 
     if (!prefersReducedMotion) {
       const isFinePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-      if (isFinePointer) {
-        const bodyStyle = document.body.style;
+      const lightningCanvas = document.querySelector("#cursorLightning");
+
+      if (isFinePointer && lightningCanvas) {
+        const context = lightningCanvas.getContext("2d");
+        const trails = [];
+        const branches = [];
         let targetX = window.innerWidth / 2;
         let targetY = window.innerHeight / 2;
         let currentX = targetX;
         let currentY = targetY;
         let velocityX = 0;
         let velocityY = 0;
-        let followRafId = 0;
-        let lastFrameTime = performance.now();
-        let prevPointerX = targetX;
-        let prevPointerY = targetY;
+        let lastTime = performance.now();
+        let pointerVisible = false;
+        let lightningRafId = 0;
+        let strikeBoost = 0;
 
-        const animateCursorGlow = (timestamp) => {
-          const dt = Math.min((timestamp - lastFrameTime) / 1000, 0.033);
-          lastFrameTime = timestamp;
+        const resizeCanvas = () => {
+          const dpr = window.devicePixelRatio || 1;
+          lightningCanvas.width = Math.floor(window.innerWidth * dpr);
+          lightningCanvas.height = Math.floor(window.innerHeight * dpr);
+          context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
 
-          const stiffness = 240;
+        const createLightningPath = (x1, y1, x2, y2, amplitude = 10) => {
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          const length = Math.hypot(dx, dy);
+          if (length < 2) return null;
+
+          const segments = Math.max(7, Math.min(18, Math.round(length / 14)));
+          const normalX = -dy / length;
+          const normalY = dx / length;
+          const points = [{ x: x1, y: y1 }];
+
+          for (let i = 1; i < segments; i += 1) {
+            const t = i / segments;
+            const envelope = 1 - Math.abs(0.5 - t) * 1.65;
+            const jitter = (Math.random() - 0.5) * amplitude * Math.max(0.15, envelope);
+            points.push({
+              x: x1 + dx * t + normalX * jitter,
+              y: y1 + dy * t + normalY * jitter
+            });
+          }
+          points.push({ x: x2, y: y2 });
+          return points;
+        };
+
+        const drawLightning = (path, alpha, width, color) => {
+          if (!path || path.length < 2) return;
+          context.beginPath();
+          context.moveTo(path[0].x, path[0].y);
+          for (let i = 1; i < path.length; i += 1) {
+            context.lineTo(path[i].x, path[i].y);
+          }
+          context.strokeStyle = color;
+          context.lineWidth = width;
+          context.globalAlpha = alpha;
+          context.lineCap = "round";
+          context.lineJoin = "round";
+          context.shadowBlur = 16;
+          context.shadowColor = color;
+          context.stroke();
+        };
+
+        const animateLightning = (timestamp) => {
+          const dt = Math.min((timestamp - lastTime) / 1000, 0.033);
+          lastTime = timestamp;
+
+          const stiffness = 460;
           const damping = 34;
-          const accelX = (targetX - currentX) * stiffness - velocityX * damping;
-          const accelY = (targetY - currentY) * stiffness - velocityY * damping;
-
-          velocityX += accelX * dt;
-          velocityY += accelY * dt;
+          velocityX += ((targetX - currentX) * stiffness - velocityX * damping) * dt;
+          velocityY += ((targetY - currentY) * stiffness - velocityY * damping) * dt;
+          const prevX = currentX;
+          const prevY = currentY;
           currentX += velocityX * dt;
           currentY += velocityY * dt;
 
-          bodyStyle.setProperty("--mx", `${currentX.toFixed(2)}px`);
-          bodyStyle.setProperty("--my", `${currentY.toFixed(2)}px`);
+          if (pointerVisible) {
+            const speed = Math.hypot(currentX - prevX, currentY - prevY);
+            if (speed > 0.2) {
+              trails.push({
+                path: createLightningPath(prevX, prevY, currentX, currentY, 13),
+                life: 1
+              });
 
-          const closeEnough = Math.abs(targetX - currentX) < 0.45 && Math.abs(targetY - currentY) < 0.45;
-          const stillMoving = Math.abs(velocityX) > 2.8 || Math.abs(velocityY) > 2.8;
+              if (Math.random() < 0.65) {
+                const angle = Math.atan2(currentY - prevY, currentX - prevX) + (Math.random() - 0.5) * 1.8;
+                const branchLength = 18 + Math.random() * 38;
+                const bx2 = currentX + Math.cos(angle) * branchLength;
+                const by2 = currentY + Math.sin(angle) * branchLength;
+                branches.push({
+                  path: createLightningPath(currentX, currentY, bx2, by2, 10),
+                  life: 0.7
+                });
+              }
+            }
+          }
 
-          if (!closeEnough || stillMoving) {
-            followRafId = window.requestAnimationFrame(animateCursorGlow);
+          for (let i = trails.length - 1; i >= 0; i -= 1) {
+            trails[i].life -= dt * 1.95;
+            if (trails[i].life <= 0) {
+              trails.splice(i, 1);
+            }
+          }
+
+          for (let i = branches.length - 1; i >= 0; i -= 1) {
+            branches[i].life -= dt * 3.1;
+            if (branches[i].life <= 0) {
+              branches.splice(i, 1);
+            }
+          }
+
+          strikeBoost = Math.max(0, strikeBoost - dt * 2.4);
+
+          context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          context.globalAlpha = 1;
+          context.shadowBlur = 0;
+
+          if (pointerVisible) {
+            const flashAlpha = Math.min(0.08, 0.02 + strikeBoost * 0.08);
+            context.fillStyle = `rgba(140, 210, 255, ${flashAlpha})`;
+            context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+          }
+
+          for (let i = 0; i < trails.length; i += 1) {
+            const t = trails[i];
+            drawLightning(t.path, Math.max(0, t.life * 0.46), 3.4, "rgba(45, 180, 255, 1)");
+          }
+
+          for (let i = 0; i < branches.length; i += 1) {
+            const b = branches[i];
+            drawLightning(b.path, Math.max(0, b.life * 0.5), 1.7, "rgba(146, 224, 255, 1)");
+          }
+
+          if (pointerVisible) {
+            const head = createLightningPath(prevX, prevY, currentX, currentY, 7.5);
+            drawLightning(head, 1, 1.5, "rgba(255, 255, 255, 1)");
+            drawLightning(head, 0.82, 4.6, "rgba(65, 194, 255, 1)");
+            drawLightning(head, 0.34, 9, "rgba(65, 194, 255, 1)");
+          }
+
+          if (pointerVisible || trails.length > 0 || branches.length > 0 || Math.abs(velocityX) > 0.6 || Math.abs(velocityY) > 0.6) {
+            lightningRafId = window.requestAnimationFrame(animateLightning);
           } else {
-            followRafId = 0;
-            velocityX = 0;
-            velocityY = 0;
-            bodyStyle.setProperty("--cursor-glow-opacity", "0.68");
+            lightningRafId = 0;
           }
         };
 
-        document.addEventListener("pointermove", (event) => {
-          const moveX = event.clientX - prevPointerX;
-          const moveY = event.clientY - prevPointerY;
-          if (Math.abs(moveX) < 0.3 && Math.abs(moveY) < 0.3) {
-            return;
+        const ensureAnimation = () => {
+          if (!lightningRafId) {
+            lastTime = performance.now();
+            lightningRafId = window.requestAnimationFrame(animateLightning);
           }
+        };
 
-          const now = performance.now();
-          prevPointerX = event.clientX;
-          prevPointerY = event.clientY;
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
 
+        document.addEventListener("pointermove", (event) => {
           targetX = event.clientX;
           targetY = event.clientY;
-          if (!followRafId) {
-            lastFrameTime = now;
-            followRafId = window.requestAnimationFrame(animateCursorGlow);
-          }
+          pointerVisible = true;
+          lightningCanvas.style.opacity = "1";
+          strikeBoost = Math.min(1, strikeBoost + 0.16);
+          ensureAnimation();
         }, { passive: true });
 
+        document.addEventListener("pointerdown", () => {
+          strikeBoost = 1;
+          ensureAnimation();
+        });
+
         document.addEventListener("pointerleave", () => {
-          bodyStyle.setProperty("--cursor-glow-opacity", "0");
+          pointerVisible = false;
+          lightningCanvas.style.opacity = "0";
+          ensureAnimation();
         });
 
         document.addEventListener("pointerenter", () => {
-          bodyStyle.setProperty("--cursor-glow-opacity", "0.68");
+          pointerVisible = true;
+          lightningCanvas.style.opacity = "1";
+          ensureAnimation();
         });
-      } else {
-        document.body.style.setProperty("--cursor-glow-opacity", "0");
+      } else if (lightningCanvas) {
+        lightningCanvas.style.display = "none";
       }
     }
 
